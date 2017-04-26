@@ -15,7 +15,7 @@ function animate(options) {
         if (timeFraction > 1) timeFraction = 1;
 
         // текущее состояние анимации
-        var progress = options.timing(timeFraction)
+        var progress = options.timing(timeFraction);
 
         options.draw(progress);
 
@@ -35,7 +35,7 @@ function Vector(x, y) {
 Vector.prototype.add = function(v) {
     this.x += v.x;
     this.y += v.y;
-}
+};
 
 function MoveableObject(position,speed) {
     this.position = position;
@@ -44,11 +44,11 @@ function MoveableObject(position,speed) {
 
 MoveableObject.prototype.draw = function(context) {
     throw "Method draw is not implemented";
-}
+};
 
 MoveableObject.prototype.step = function(width, height) {
     throw "Method step is not implemented";
-}
+};
 
 
 function ImageObject (position, speed, src, scale) {
@@ -56,23 +56,25 @@ function ImageObject (position, speed, src, scale) {
     MoveableObject.apply(this, arguments);
     this.img = new Image();
     this.img.src = src;
-
     this.img.onload = function () {
         self.imgWidth = this.width*scale;
         self.imgHeight = this.height*scale;
-    }
-
-    console.log("imgHeight :" + this.imgHeight)
+    };
+    this.angle = 0;
 }
 
 ImageObject.prototype = Object.create(MoveableObject.prototype);
 ImageObject.prototype.constructor = ImageObject;
 
 ImageObject.prototype.draw = function(context) {
-
-    context.drawImage(this.img, this.position.x, this.position.y, this.imgWidth, this.imgHeight);
-
-}
+    context.save();
+    context.beginPath();
+    context.translate(this.position.x + this.imgWidth/2, this.position.y + this.imgHeight/2);
+    context.rotate(this.angle * Math.PI / 180);
+    context.drawImage(this.img, -this.imgWidth/2, -this.imgHeight/2, this.imgWidth, this.imgHeight);
+    context.closePath();
+    context.restore();
+};
 
 ImageObject.prototype.step = function(width, height) {
     if(this.position.x + this.speed.x > width || this.position.x + this.speed.x < 0) {
@@ -83,9 +85,7 @@ ImageObject.prototype.step = function(width, height) {
     }
 
     this.position.add(this.speed);
-}
-
-
+};
 
 
 var firsImg = new ImageObject(
@@ -152,9 +152,25 @@ function drawLine (context, bezierX, bezierY, numPoints) {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.moveTo(100, 90);
-    drawLine(ctx, bez2x, bez2y, 300);
-
+    // ctx.moveTo(100, 90);
+    // drawLine(ctx, bez2x, bez2y, 300);
+    // firsImg.draw(ctx);
+    // firsImg.step(canvas.width, canvas.height);
 }
 
 setInterval(draw, 10);
+
+animate({
+    duration: 5000,
+    timing: function (timeFraction) {
+        return timeFraction;
+    },
+    draw: function(t) {
+        firsImg.position.x = bez2x(t);
+        firsImg.position.y = bez2y(t);
+
+        var k = bez2xD(t) / bez2yD(t);
+        firsImg.angle = (Math.atan(k) * - 180 / Math.PI);
+        firsImg.draw(ctx);
+    }
+});
