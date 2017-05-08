@@ -86,8 +86,9 @@ ImageObject.prototype.step = function (t) {
     this.position.x = this.bezierX.bezier(t);
     this.position.y = this.bezierY.bezier(t);
 
-    var k = this.bezierX.derivative(t) / this.bezierY.derivative(t);
+    var k = this.bezierY.derivative(t) / this.bezierX.derivative(t);
     this.angle = (Math.atan(k) * 180 / Math.PI);
+    console.log(this.angle);
 };
 
 ImageObject.prototype.draw = function (context) {
@@ -104,8 +105,8 @@ var firstImg = new ImageObject(
     new Vector(canvas.width / 2, canvas.height / 2),
     "fish13.png",
     1,
-    new Bezier3(200, 400, 800),
-    new Bezier3(400, 800, 400)
+    new Bezier3(800, 400, 200),
+    new Bezier3(400, 0, 400)
 );
 
 var secondImg = new ImageObject(
@@ -114,15 +115,15 @@ var secondImg = new ImageObject(
     0.5,
     new Bezier4(800, 640, 400, 380),
     new Bezier4(400, 220, 100, 80)
-)
+);
 
 function drawLine(context, bezierX, bezierY, numPoints) {
     var step = 1 / numPoints;
     var t = 0;
     context.fill();
     while (t <= 1) {
-        var x = bezierX(t);
-        var y = bezierY(t);
+        var x = bezierX.bezier(t);
+        var y = bezierY.bezier(t);
         t += step;
         context.lineTo(x, y);
     }
@@ -132,13 +133,12 @@ function drawLine(context, bezierX, bezierY, numPoints) {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
 }
 
 setInterval(draw, 10);
 
 animate({
-    duration: 5000,
+    duration: 15000,
     timing: function (timeFraction) {
         return timeFraction;
     },
