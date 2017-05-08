@@ -7,6 +7,8 @@ var ctx = canvas.getContext("2d");
 
 function animate(options) {
 
+    options.before();
+
     var start = performance.now();
 
     requestAnimationFrame(function animate(time) {
@@ -21,9 +23,11 @@ function animate(options) {
 
         if (timeFraction < 1) {
             requestAnimationFrame(animate);
+        } else {
+            options.after();
         }
-
     });
+
 }
 
 
@@ -44,12 +48,12 @@ function Bezier3(p1, p2, p3) {
     this.p3 = p3;
 }
 
-Bezier3.prototype.bezier = function(t) {
-        return Math.pow((1 - t), 2) * this.p1 + 2 * (1 - t) * t * this.p2 + Math.pow(t, 2) * this.p3;
+Bezier3.prototype.bezier = function (t) {
+    return Math.pow((1 - t), 2) * this.p1 + 2 * (1 - t) * t * this.p2 + Math.pow(t, 2) * this.p3;
 };
 
 Bezier3.prototype.derivative = function (t) {
-        return 2 * (1 - t) * (this.p2 - this.p1) + 2 * t * (this.p3 - this.p2);
+    return 2 * (1 - t) * (this.p2 - this.p1) + 2 * t * (this.p3 - this.p2);
 };
 
 function Bezier4(p1, p2, p3, p4) {
@@ -60,10 +64,10 @@ function Bezier4(p1, p2, p3, p4) {
 }
 
 Bezier4.prototype.bezier = function (t) {
-        return Math.pow((1 - t), 3) * this.p1 + 3 * Math.pow((1 - t), 2) * t * this.p2 + 3 * (1 - t) * Math.pow(t, 2) * this.p3 + Math.pow(t, 3) * this.p4;
+    return Math.pow((1 - t), 3) * this.p1 + 3 * Math.pow((1 - t), 2) * t * this.p2 + 3 * (1 - t) * Math.pow(t, 2) * this.p3 + Math.pow(t, 3) * this.p4;
 };
 Bezier4.prototype.derivative = function (t) {
-        return 3 * Math.pow((1 - t), 2) * (this.p2 - this.p1) + 6 * (1 - t) * t * (this.p3 - this.p2) + 3 * Math.pow(t, 2) * (this.p4 - this.p3);
+    return 3 * Math.pow((1 - t), 2) * (this.p2 - this.p1) + 6 * (1 - t) * t * (this.p3 - this.p2) + 3 * Math.pow(t, 2) * (this.p4 - this.p3);
 };
 
 function ImageObject(position, src, scale, bezierX, bezierY) {
@@ -88,7 +92,6 @@ ImageObject.prototype.step = function (t) {
 
     var k = this.bezierY.derivative(t) / this.bezierX.derivative(t);
     this.angle = (Math.atan(k) * 180 / Math.PI);
-    console.log(this.angle);
 };
 
 ImageObject.prototype.draw = function (context) {
@@ -138,6 +141,9 @@ function draw() {
 setInterval(draw, 10);
 
 animate({
+    before: function () {
+
+    },
     duration: 15000,
     timing: function (timeFraction) {
         return timeFraction;
@@ -145,11 +151,17 @@ animate({
     draw: function (t) {
         firstImg.step(t);
         firstImg.draw(ctx);
+    },
+    after: function () {
+
     }
 });
 
 
 animate({
+    before: function () {
+        console.log("before");
+    },
     duration: 10000,
     timing: function (timeFraction) {
         return timeFraction;
@@ -157,5 +169,8 @@ animate({
     draw: function (t) {
         secondImg.step(t);
         secondImg.draw(ctx);
+    },
+    after: function () {
+        console.log("after");
     }
 });
