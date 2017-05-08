@@ -1,13 +1,27 @@
+var PICTURES = ["fish13.png"];
+
+var MAX_FISH_COUNT = 10;
+
+var FADE_DURATION = 1500;
+
+var MIN_TRANSLATION_DURATION = 6000;
+var MAX_TRANSLATION_DURATION =  10000;
+
 var canvas = document.getElementById("myCanvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 var ctx = canvas.getContext("2d");
 
+function linearInterpolator(t) {
+    return t;
+}
 
 function animate(options) {
 
-    options.before();
+    if (options.before) {
+        options.before();
+    }
 
     var start = performance.now();
 
@@ -16,6 +30,9 @@ function animate(options) {
         var timeFraction = (time - start) / options.duration;
         if (timeFraction > 1) timeFraction = 1;
 
+        if (!options.timing) {
+            options.timing = linearInterpolator;
+        }
         // текущее состояние анимации
         var progress = options.timing(timeFraction);
 
@@ -24,9 +41,23 @@ function animate(options) {
         if (timeFraction < 1) {
             requestAnimationFrame(animate);
         } else {
-            options.after();
+             if (options.after) {
+                 options.after();
+             }
         }
     });
+}
+
+function randomInt(from, to)  {
+    return Math.floor(Math.random() * (to - from + 1)) + from;
+}
+
+function randomBoolean() {
+    return Math.random() < 0.5;
+}
+
+function randImg() {
+    // return new ImageObject(PICTURES[randomInt(0, PICTURES.length-1)],
 
 }
 
@@ -70,9 +101,9 @@ Bezier4.prototype.derivative = function (t) {
     return 3 * Math.pow((1 - t), 2) * (this.p2 - this.p1) + 6 * (1 - t) * t * (this.p3 - this.p2) + 3 * Math.pow(t, 2) * (this.p4 - this.p3);
 };
 
-function ImageObject(position, src, scale, bezierX, bezierY) {
+function ImageObject(src, scale, bezierX, bezierY) {
     var self = this;
-    this.position = position;
+    this.position = new Vector(0,0);
 
     this.img = new Image();
     this.img.src = src;
@@ -81,9 +112,11 @@ function ImageObject(position, src, scale, bezierX, bezierY) {
         self.imgHeight = this.height * scale;
     };
 
+    this.alpha = 1.0;
     this.angle = 0;
     this.bezierX = bezierX;
     this.bezierY = bezierY;
+
 }
 
 ImageObject.prototype.step = function (t) {
@@ -99,40 +132,18 @@ ImageObject.prototype.draw = function (context) {
     context.beginPath();
     context.translate(this.position.x + this.imgWidth / 2, this.position.y + this.imgHeight / 2);
     context.rotate(this.angle * Math.PI / 180);
+    context.globalAlpha = this.alpha;
     context.drawImage(this.img, -this.imgWidth / 2, -this.imgHeight / 2, this.imgWidth, this.imgHeight);
     context.closePath();
     context.restore();
 };
 
-var firstImg = new ImageObject(
-    new Vector(canvas.width / 2, canvas.height / 2),
-    "fish13.png",
-    1,
-    new Bezier3(800, 400, 200),
-    new Bezier3(400, 0, 400)
-);
-
 var secondImg = new ImageObject(
-    new Vector(canvas.width / 3, canvas.height / 3),
     "fish13.png",
     0.5,
     new Bezier4(800, 640, 400, 380),
     new Bezier4(400, 220, 100, 80)
 );
-
-function drawLine(context, bezierX, bezierY, numPoints) {
-    var step = 1 / numPoints;
-    var t = 0;
-    context.fill();
-    while (t <= 1) {
-        var x = bezierX.bezier(t);
-        var y = bezierY.bezier(t);
-        t += step;
-        context.lineTo(x, y);
-    }
-    context.stroke();
-}
-
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -142,31 +153,27 @@ setInterval(draw, 10);
 
 animate({
     before: function () {
-
-    },
-    duration: 15000,
-    timing: function (timeFraction) {
-        return timeFraction;
-    },
-    draw: function (t) {
-        firstImg.step(t);
-        firstImg.draw(ctx);
-    },
-    after: function () {
-
-    }
-});
-
-
-animate({
-    before: function () {
         console.log("before");
+
+        animate({
+            duration: 2000,
+            draw: function (t) {
+                secondImg.alpha = t;
+            }
+        });
+
+        setTimeout(function () {
+            animate({
+                duration: 2000,
+                draw: function (t) {
+                    secondImg.alpha = 1 - t;
+                }
+            })
+        }, 8000);
     },
     duration: 10000,
-    timing: function (timeFraction) {
-        return timeFraction;
-    },
     draw: function (t) {
+
         secondImg.step(t);
         secondImg.draw(ctx);
     },
