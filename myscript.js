@@ -1,4 +1,4 @@
-var PICTURES = ["fish13.png"];
+var PICTURES = ["fish13.png", "fish3.png"];
 
 var MAX_FISH_COUNT = 10;
 
@@ -7,9 +7,15 @@ var FADE_DURATION = 1500;
 var MIN_TRANSLATION_DURATION = 6000;
 var MAX_TRANSLATION_DURATION =  10000;
 
+var MIN_SCALE = 0.2;
+var MAX_SCALE = 0.53;
+
 var canvas = document.getElementById("myCanvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+
+var MAX_X = canvas.width;
+var MAX_Y = canvas.height;
 
 var ctx = canvas.getContext("2d");
 
@@ -56,8 +62,20 @@ function randomBoolean() {
     return Math.random() < 0.5;
 }
 
+var percent = randomInt(0, 100);
+
+function getPercentBetween(from, to, percent) {
+    percent /= 100;
+    var k = percent / (1 - percent);
+    return (from + k * to) / (1 + k);
+}
+
 function randImg() {
-    // return new ImageObject(PICTURES[randomInt(0, PICTURES.length-1)],
+    return new ImageObject(PICTURES[randomInt(0, PICTURES.length-1)],
+                          getPercentBetween(MIN_SCALE,MAX_SCALE,percent),
+                          new Bezier3(randomInt(0, MAX_X), randomInt(0, MAX_X), randomInt(0, MAX_X)),
+                          new Bezier3(randomInt(0, MAX_Y), randomInt(0, MAX_Y), randomInt(0, MAX_Y))
+    );
 
 }
 
@@ -138,12 +156,14 @@ ImageObject.prototype.draw = function (context) {
     context.restore();
 };
 
-var secondImg = new ImageObject(
-    "fish13.png",
-    0.5,
-    new Bezier4(800, 640, 400, 380),
-    new Bezier4(400, 220, 100, 80)
-);
+// var secondImg = new ImageObject(
+//     "fish13.png",
+//     0.5,
+//     new Bezier4(800, 640, 400, 380),
+//     new Bezier4(400, 220, 100, 80)
+// );
+
+var secondImg = randImg();
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
