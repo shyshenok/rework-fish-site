@@ -165,8 +165,23 @@ ImageObject.prototype.draw = function (context) {
 
 var secondImg = randImg();
 
+function drawLine(context, bezierX, bezierY, numPoints) {
+    var step = 1 / numPoints;
+    var t = 0;
+    context.fill();
+    while (t <= 1) {
+        var x = bezierX(t);
+        var y = bezierY(t);
+        t += step;
+        context.lineTo(x, y);
+    }
+    context.stroke();
+}
+
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawLine(ctx, secondImg.bezierX.bezier, secondImg.bezierY.bezier, 100);
 }
 
 setInterval(draw, 10);
